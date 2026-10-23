@@ -1,6 +1,8 @@
 import SwiftUI
 import PhotosUI
 import ImageIO
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 struct ContentView: View {
     @State private var pickerItem: PhotosPickerItem?
@@ -9,6 +11,10 @@ struct ContentView: View {
     @State private var right = 0.0
     @State private var top = 0.0
     @State private var bottom = 0.0
+    @State private var filterName = "None"
+
+    private let filterNames = ["None", "Sepia", "Noir", "Chrome", "Blur"]
+    private let context = CIContext()
 
     var croppedPhoto: CGImage? {
         guard let photo else { return nil }
@@ -23,10 +29,15 @@ struct ContentView: View {
         return photo.cropping(to: area)
     }
 
+    var finalPhoto: CGImage? {
+        guard let croppedPhoto else { return nil }
+        return applyFilter(croppedPhoto)
+    }
+
     var body: some View {
         VStack(spacing: 16) {
-            if let croppedPhoto {
-                Image(decorative: croppedPhoto, scale: 1)
+            if let finalPhoto {
+                Image(decorative: finalPhoto, scale: 1)
                     .resizable()
                     .scaledToFit()
                     .frame(height: 350)
@@ -39,6 +50,13 @@ struct ContentView: View {
                 .buttonStyle(.borderedProminent)
 
             if photo != nil {
+                Picker("Filter", selection: $filterName) {
+                    ForEach(filterNames, id: \.self) { name in
+                        Text(name)
+                    }
+                }
+                .pickerStyle(.segmented)
+
                 HStack {
                     Text("Left").frame(width: 60, alignment: .leading)
                     Slider(value: $left, in: 0...0.45)
@@ -62,12 +80,13 @@ struct ContentView: View {
                         right = 0
                         top = 0
                         bottom = 0
+                        filterName = "None"
                     }
                     .buttonStyle(.bordered)
 
-                    if let croppedPhoto {
-                        let image = Image(decorative: croppedPhoto, scale: 1)
-                        ShareLink(item: image, preview: SharePreview("Cropped photo", image: image)) {
+                    if let finalPhoto {
+                        let image = Image(decorative: finalPhoto, scale: 1)
+                        ShareLink(item: image, preview: SharePreview("Edited photo", image: image)) {
                             Label("Save", systemImage: "square.and.arrow.down")
                         }
                         .buttonStyle(.borderedProminent)
@@ -81,6 +100,36 @@ struct ContentView: View {
         }
     }
 
+    func applyFilter(_ image: CGImage) -> CGImage {
+        let input = CIImage(cgImage: image)
+        var output = input
+
+        switch filterName {
+        case "Sepia":
+            let filter = CIFilter.sepiaTone()
+            filter.inputImage = input
+            filter.intensity = 1
+            output = filter.outputImage ?? input
+        case "Noir":
+            let filter = CIFilter.photoEffectNoir()
+            filter.inputImage = input
+            output = filter.outputImage ?? input
+        case "Chrome":
+            let filter = CIFilter.photoEffectChrome()
+            filter.inputImage = input
+            output = filter.outputImage ?? input
+        case "Blur":
+            let filter = CIFilter.gaussianBlur()
+            filter.inputImage = input
+            filter.radius = 10
+            output = filter.outputImage ?? input
+        default:
+            return image
+        }
+
+        return context.createCGImage(output, from: input.extent) ?? image
+    }
+
     func loadPhoto() {
         Task {
             if let data = try? await pickerItem?.loadTransferable(type: Data.self),
@@ -88,13 +137,14 @@ struct ContentView: View {
                 let options: [CFString: Any] = [
                     kCGImageSourceCreateThumbnailFromImageAlways: true,
                     kCGImageSourceCreateThumbnailWithTransform: true,
-                    kCGImageSourceThumbnailMaxPixelSize: 4000
+                    kCGImageSourceThumbnailMaxPixelSize: 2000
                 ]
                 photo = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
                 left = 0
                 right = 0
                 top = 0
                 bottom = 0
+                filterName = "None"
             }
         }
     }
