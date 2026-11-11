@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Homework 4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Homework 4.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEC0C65C30A50DEC00E78827 /* Homework 4.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Homework 4.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +40,13 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* Homework 4.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BEC0C66130A50DEC00E78827 /* Products */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -92,6 +100,12 @@
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = BEC0C66130A50DEC00E78827 /* Products */;
+					ProjectRef = BEC0C65C30A50DEC00E78827 /* Homework 4.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* Homework 4 */,
